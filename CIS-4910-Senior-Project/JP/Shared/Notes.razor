@@ -1,0 +1,173 @@
+﻿@using JP.Shared
+@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+
+@page "/notes"
+
+<PageTitle>Notes</PageTitle>
+
+<main>
+    <button class="new-note mx-auto" style="margin:auto; position:absolute; top: 100%; right: -11%" @onclick ="@(() => ShowCreateNoteForm())">New Note</button>
+    <div class="content">
+        <div class="header" style="left: -10%">
+            <h1>Notes</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <div>
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" asp-for="searchTerm" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <th style ="width: 20%;">Name & Date</th>
+                    <th style="width: 50%;">Content</th>
+                    <th style="width: 10%;">Category ID</th>
+                    <th style="width: 10%;">Edit</th>
+                    <th style="width: 10%;">Delete</th>
+                </tr>
+                @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";
+                    foreach (note note in database.GetNotes(EmpID, searchTerm))
+                    {
+                    <tr>
+                        <td>@note.name</td>
+                        <td>@note.contents</td>
+                        <td>@note.categoryName</td>
+                        <td>
+                            <button class="edit-note" @onclick="@(() => ShowEditNoteForm(note.id, note.name, note.contents, note.categoryID, note.categoryName))">Edit</button>
+                        </td>
+                        <td>
+                            <button class="delete-note" @onclick="@(() => ConfirmDeleteNote(note.id))">Delete</button>
+                        </td>
+                    </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>
+
+@if (showingCreateNoteForm)
+{
+    
+    <CreateNoteForm 
+        Note="newNote"
+        OnCancel="CancelCreateNote"
+        OnSave="SaveCreateNote"/>
+
+}
+
+@if (showingEditNoteForm)
+{
+
+    <EditNoteForm 
+        Note="editNote"
+        OnCancel="CancelEditNote"
+        OnSave="SaveEditNote" />
+
+}
+
+@if (showingConfirmDeleteNote) {
+
+    <ConfirmDeleteNote
+        OnNo="CancelDeleteNote"
+        OnYes="DeleteNote" />
+
+}
+
+@functions{
+
+    note newNote;
+    note editNote;
+    int empID;
+    int deleteNoteID;
+    bool showingCreateNoteForm;
+    bool showingEditNoteForm;
+    bool showingConfirmDeleteNote;
+
+    public int EmpID { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        EmpID = await GetEmpID();
+    }
+
+    // GET EMP ID
+    private async Task<int> GetEmpID()
+    {
+        string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+        int userID = Convert.ToInt32(strUserID);
+        userID = database.GetEmpID(userID);
+        return userID;
+    }
+
+    // DELETE NOTE ---------------------------------------------------------------
+
+    private async Task ConfirmDeleteNote(int id)
+    {
+        deleteNoteID = id;
+        showingConfirmDeleteNote = true;
+    }
+
+    // Function to delete notes
+    private async Task DeleteNote()
+    {
+        database.DeleteNote(deleteNoteID);
+        showingConfirmDeleteNote = false;
+    }
+
+    void CancelDeleteNote()
+    {
+        showingConfirmDeleteNote = false;
+    }
+
+    // CREATE NOTE ---------------------------------------------------------------
+
+    // Function to show create note form
+    void ShowCreateNoteForm()
+    {
+        newNote = new note(0, EmpID, "", "", 7,"");
+        showingCreateNoteForm = true;
+    }
+
+    // Function to cancel note creation
+    void CancelCreateNote()
+    {
+        showingCreateNoteForm = false;
+    }
+
+    // Function to save created note
+    private async Task SaveCreateNote()
+    {
+        database.CreateNote(newNote.employeeID, newNote.name, newNote.contents, newNote.categoryID);
+        showingCreateNoteForm = false;
+    }
+
+    // EDIT NOTE ---------------------------------------------------------------
+
+    // Function to show edit note form
+    void ShowEditNoteForm(int id, string name, string contents, int catID, string catname)
+    {
+        editNote = new note(id, 0, name, contents, catID, catname);
+        showingEditNoteForm = true;
+    }
+
+    // Function to cancel note edit
+    void CancelEditNote()
+    {
+        showingEditNoteForm = false;
+    }
+
+    // Function to save editted note
+    private async Task SaveEditNote()
+    {
+        database.EditNote(editNote.id, editNote.name, editNote.contents, editNote.categoryID);
+        showingEditNoteForm = false;
+    }
+}

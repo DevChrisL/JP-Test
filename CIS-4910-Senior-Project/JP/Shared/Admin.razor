@@ -1,0 +1,200 @@
+﻿@inherits LayoutComponentBase
+
+@page "/Admin"
+
+<PageTitle>Admin</PageTitle>
+
+<main>
+    <button class="new-user mx-auto" style="margin:auto; position:absolute; top: 100%; right: -11%" @onclick="@(() => ShowCreateAccountForm())">New User</button>
+    <div class="content">
+        <div class="header" style="left: -10%">
+            <h1>Manage Users</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <th style="width: 15%;">ID</th>
+                    <th style="width: 40%;">Username</th>
+                    <th style="width: 40%;">Password</th>
+                    <th style="width: 10%;">Edit</th>
+                    <th style="width: 10%;">Delete</th>
+                </tr>
+                @foreach (account acc in database.GetAccounts())
+                {
+                    <tr>
+                        <td>@acc.id</td>
+                        <td>@acc.username</td>
+                        <td>@acc.password</td>
+                        <td>
+                            <button class="edit-user" @onclick="@(() => ShowEditAccountForm(acc.id, acc.username, acc.password, acc.type))">Edit</button>
+                        </td>
+                        <td>
+                            <button class="delete-user" @onclick="@(() => ConfirmDeleteAccount(acc.id))">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </table>
+            <br />
+            <br />
+            <br />
+            <br />
+        <div class="header" style="left: -10%; display: none">
+            <h1>Inactive Leads</h1>
+        </div>
+            <table class="table table-sm" style="display: none">
+                <tr>
+                    <th style="width: 20%;">Company</th>
+                    <th style="width: 20%;">First Name</th>
+                    <th style="width: 20%;">Last Name</th>
+                    <th style="width: 30%;">Email</th>
+                    <th style="width: 15%;">Phone Number</th>
+                    <th style="width: 15%;">Category</th>
+                    <th style="width: 30%;">Recommended Products</th>
+                    <th style="width: 20%;">Reactivate</th>
+
+                </tr>
+                @{
+                    foreach (client inactiveLead in database.GetInactiveLeads())
+                    {
+                        <tr>
+                            <td>@inactiveLead.companyID</td>
+                            <td>@inactiveLead.firstName</td>
+                            <td>@inactiveLead.lastName</td>
+                            <td>@inactiveLead.email</td>
+                            <td>@inactiveLead.phoneNumber</td>
+                            <td>@inactiveLead.categoryID</td>
+                            <td>
+                                @foreach (RecommendedProduct prod in database2.GetRecommendeds(inactiveLead.categoryID, inactiveLead.companyemployees, inactiveLead.companyrevenue))
+                                {
+                                    @prod.productname <br />
+                                }
+                            </td>
+                            <td>
+                                <button class="reactivate-client" @onclick="@(() => database.ReactivateLead(inactiveLead.id))">Reactivate</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </table>
+            <br />
+            <br />
+            <br />
+            <br />
+            <div>
+                <table>
+                    <tr>
+                        <th>Audit Log - Importing New Leads</th>
+                    </tr>
+                    @foreach(auditLogEntry newLead in database.GetAuditLogEntries())
+                    {
+                        <tr>
+                            <td>@newLead.entry</td>
+                        </tr>
+                    }
+                </table>
+                <br />
+                <br />
+            </div>
+        </div>
+    </div>
+</main>
+
+@if (showingConfirmDeleteAccount)
+{
+
+    <ConfirmDeleteAccount 
+        OnNo="CancelDeleteAccount"
+        OnYes="ConfirmDeleteAccount" />
+
+}
+
+@if (showingEditAccountForm)
+{
+
+    <EditAccountForm
+        Account="editAccount"
+        OnCancel="CancelEditAccount"
+        OnSave="SaveEditAccount" />
+
+}
+
+@if (showingCreateAccountForm)
+{
+    <CreateAccountForm 
+        Account="newAccount"
+        OnCancel="CancelCreateAccount"
+        OnSave="SaveCreateAccount" />
+}
+
+@functions {
+
+    bool showingCreateAccountForm;
+    bool showingConfirmDeleteAccount;
+    bool showingEditAccountForm;
+    int accountID;
+    account editAccount;
+    account newAccount;
+
+    // CREATE ACCOUNT ---------------------------------------------------------------
+
+    private async Task ShowCreateAccountForm()
+    {
+        newAccount = new account(accountID, "", "", "");
+        showingCreateAccountForm = true;
+    }
+
+    void CancelCreateAccount()
+    {
+        showingCreateAccountForm = false;
+    }
+
+    void SaveCreateAccount()
+    {
+        database.CreateAccount(newAccount.username, newAccount.password, newAccount.type);
+        showingCreateAccountForm = false;
+    }
+
+    // DELETE ACCOUNT ---------------------------------------------------------------
+
+    // Function to confirm account deletion
+    private async Task ConfirmDeleteAccount(int id)
+    {
+        // Confirm if they would like to delete account
+        accountID = id;
+        showingConfirmDeleteAccount = true;
+    }
+
+    void CancelDeleteAccount()
+    {
+        showingConfirmDeleteAccount = false;
+    }
+
+    void ConfirmDeleteAccount()
+    {
+        database.DeleteAccount(accountID);
+        showingConfirmDeleteAccount = false;
+    }
+
+    // EDIT ACCOUNT ---------------------------------------------------------------
+
+    // Function to show edit account form
+    void ShowEditAccountForm(int id, string username, string password, string accountType)
+    {
+        editAccount = new account(id, username, password, accountType);
+        showingEditAccountForm = true;
+    }
+
+    // Function to cancel account edit
+    void CancelEditAccount()
+    {
+        showingEditAccountForm = false;
+    }
+
+    // Function to save editted acccount
+    private async Task SaveEditAccount()
+    {
+        database.EditAccount(editAccount.id, editAccount.username, editAccount.password, editAccount.type);
+        showingEditAccountForm = false;
+    }
+
+}

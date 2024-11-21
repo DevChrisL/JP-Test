@@ -1,0 +1,65 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+@page "/sales"
+
+<PageTitle>Sales</PageTitle>
+
+<main>
+    <div class ="content">
+        <div class="header" style="left: -10%">
+            <h1>Sales</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <div>
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class ="table table-sm table-bordered">
+                <tr>
+                    <th style ="width: 10%;">Date</th>
+                    <th style="width: 20%;">Company</th>
+                    <th style="width: 15%;">Client</th>
+                    <th style="width: 15%;">Employee</th>
+                    <th style="width: 20%;">Product</th>
+                    <th style="width: 15%;">Category</th>
+                    <th style="width: 10%;">Revenue</th>
+                </tr>
+                <!--  <tr>
+                    @foreach (product prod in database.GetProducts()){
+                    <td>@prod.id</td>break;}
+                    @foreach (product prod in database.GetProducts()){
+                    <td>@prod.date</td>break;}
+                    @foreach (client client in database.GetClients()){
+                    <td>@client.firstName @client.lastName</td>break;}
+                    @foreach (employee emp in database.GetEmployees()){
+                    <td>@emp.firstName @emp.lastName</td>break;}
+                    @foreach (product prod in database.GetProducts()){
+                    <td>@prod.name</td>break;}
+                    @foreach (product prod in database.GetProducts()){
+                    <td>@prod.categoryName</td>break;}
+                </tr>-->
+
+                @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";
+                    foreach (sale sale in database.GetSales(searchTerm))
+                    {
+                        <tr>
+                            <td>@sale.date.ToString("MM/dd/yyyy")</td>
+                            <td>@sale.companyName</td>
+                            <td>@sale.clientfName @sale.clientlName</td>
+                            <td>@sale.employeefName @sale.employeelName</td>
+                            <td>@sale.productName</td>
+                            <td>@sale.categoryName</td>
+                            <td>@sale.revenue.ToString("C")</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>

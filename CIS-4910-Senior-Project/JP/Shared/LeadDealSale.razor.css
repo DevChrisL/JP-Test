@@ -1,0 +1,85 @@
+.header {
+    background-color: #f7f7f7;
+    font-size: 60px;
+    border-bottom: 0;
+    height: 100%;
+    position: absolute;
+}
+
+html, body {
+    height: 100%;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    align-items:center;
+    margin-right: 500px;
+}
+
+    table td {
+        overflow: hidden;
+        word-break: normal;
+        text-align: center;
+    }
+
+    table th {
+        word-break: normal;
+        text-align: center;
+    }
+
+tablealign {
+    border-radius: 3px;
+    padding-bottom: 50px;
+}
+
+th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 20px;
+    background-color: #03173e;
+    color: white;
+    font-weight: 300;
+}
+
+tr:nth-child(even) {
+    background-color: #d8d8d8;
+}
+
+td, th {
+    border: 1px solid black;
+    padding: 3px;
+    padding-inline-start: 20px;
+    padding-inline-end: 20px;
+}
+
+tbody tr {
+    table-layout: auto;
+    display: table;
+    width: 100%;
+}
+
+form {
+    background-color: #f6f7fa;
+    position: absolute;
+    top: -50px;
+    right: -50%;
+    width: 50%;
+    height: 44px;
+    border: 1px solid;
+    border-radius: 50px;
+    border-color: #808080;
+    padding-inline-start: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+input {
+    all: unset;
+    font: 16px system-ui;
+    color: black;
+    height: 100%;
+    width: 100%;
+    padding: 6px 10px;
+}

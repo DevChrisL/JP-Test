@@ -1,0 +1,86 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href=""><img src="images/logo.png" width="180" Fluid="true" alt="J.P. Morgan"></a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="home" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="products" Match="NavLinkMatch.All">
+                <span class="oi oi-products" aria-hidden="true"></span>Products
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="leaddealsale" Match="NavLinkMatch.All">
+                <span class="oi oi-leaddealsale" aria-hidden="true"></span>Lead-Deal-Sale Lifecycle
+           </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="potential-leads" Match="NavLinkMatch.All">
+                <span class="oi oi-pleads" aria-hidden="true"></span>Potential Leads
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="clients" Match="NavLinkMatch.All">
+                <span class="oi oi-clients" aria-hidden="true"></span>Clients
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="notes" Match="NavLinkMatch.All">
+                <span class="oi oi-notes" aria-hidden="true"></span>Notes
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="login" Match="NavLinkMatch.All"> 
+                <span class="oi oi-login" aria-hidden="true"></span><span @ref="divLogin" @onclick="Logout">Login</span>
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime;
+@code {
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private ElementReference divLogin;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        string username = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserName");
+        string login = "";
+
+        if (username != "")
+        {
+            login = "Logout";
+        }
+        else
+        {
+            login = "Login";
+        }
+        await JsRuntime.InvokeVoidAsync("setText", divLogin, login);
+    }
+
+    public async void Logout()
+    {
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserID");
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserName");
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserType");
+    }
+}
+

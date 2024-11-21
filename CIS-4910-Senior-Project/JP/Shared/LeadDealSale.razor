@@ -1,0 +1,30 @@
+@inherits LayoutComponentBase
+
+@page "/leaddealsale"
+
+<PageTitle>Lead-Deal-Sale Visibility</PageTitle>
+
+<main>
+    <div class="content">
+        <div class="header" style="left: -10%">
+            <h1>Lead-Deal-Sale Lifecycle</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <th>Lead</th>
+                    <th>Deal</th>
+                    <th>Sale</th>
+                </tr>
+                @foreach (leaddealsale lds in database.GetLeadDealSales())
+                {
+                    <tr>
+                        <td>Lead name: @lds.leadName<br>Company name: @lds.leadCompanyName<br>Join date: @lds.leadJoinDate.ToString("MM/dd/yyyy")<br>Assigned to employee: @lds.leadEmployeeName</td>
+                        <td>Deal category: @lds.dealCategoryName<br>Product: @lds.dealProductName<br>Deal date: @lds.dealDate.ToString("MM/dd/yyyy")</td>
+                        <td>Product sold: @lds.saleProductName<br>Sale date: @lds.saleDate.ToString("MM/dd/yyyy")<br>Sale revenue: @lds.saleRevenue.ToString("C")</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+</main>

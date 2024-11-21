@@ -1,0 +1,128 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>JPMC CRM</PageTitle>
+
+<div class="page">
+
+    <main>
+        <div class="top-row mx-auto">
+            <div class="container-fluid" style="float:right;">
+                <a class="navbar-brand" href=""><img src="images/logo.png" width="180" Fluid="true" alt="J.P. Morgan"></a>
+            </div>
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+            <span @ref="divProducts">
+                <NavLink class="nav-link" href="products">
+                    <span class="oi oi-products" aria-hidden="true"></span>Products
+                </NavLink>
+            </span>
+            <span @ref="divLeadDealSale">
+                <NavLink class="nav-link" href="leaddealsale">
+                    <span class="oi oi-leaddealsale" aria-hidden="true"></span>Lead-Deal-Sale Lifecycle
+                </NavLink>
+            </span>
+            <span @ref="divPotentialLeads">
+                <NavLink class="nav-link" href="leads">
+                    <span class="oi oi-pleads" aria-hidden="true"></span>Potential Leads
+                </NavLink>
+            </span>
+            <span @ref="divDeals">
+                <NavLink class="nav-link" href="deals">
+                    <span class="oi oi-pleads" aria-hidden="true"></span>Deals
+                </NavLink>
+            </span>
+            <span @ref="divSales">
+                <NavLink class="nav-link" href="sales">
+                    <span class="oi oi-pleads" aria-hidden="true"></span>Sales
+                </NavLink>
+            </span>
+            <span @ref="divClients">
+                <NavLink class="nav-link" href="clients">
+                    <span class="oi oi-clients" aria-hidden="true"></span>Clients
+                </NavLink>
+            </span>
+            <span @ref="divNotes">
+                <NavLink class="nav-link" href="notes">
+                    <span class="oi oi-notes" aria-hidden="true"></span>Notes
+                </NavLink>
+            </span>
+            <span @ref="divAdmin">
+                <NavLink class="nav-link" href="admin">
+                    <span class="oi oi-admin" aria-hidden="true"></span>Admin
+                </NavLink>
+            </span>
+            <span @ref="divLogin">
+            <NavLink class="nav-link" href="login">
+                <span class="oi oi-login" aria-hidden="true"></span><span>Login</span>
+            </NavLink>
+            </span>
+            <span @ref="divLogout">
+            <NavLink class="nav-link" href="login">
+                <span class="oi oi-login" aria-hidden="true"></span><span @onclick="Logout">Logout</span>
+            </NavLink>
+            </span>
+        </div>
+
+        <article class="content px-4">
+                @Body
+        </article>
+    </main>
+</div>
+
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime;
+@code {
+    private ElementReference divProducts;
+    private ElementReference divLeadDealSale;
+    private ElementReference divPotentialLeads;
+    private ElementReference divDeals;
+    private ElementReference divSales;
+    private ElementReference divClients;
+    private ElementReference divNotes;
+    private ElementReference divAdmin;
+    private ElementReference divLogin;
+    private ElementReference divLogout;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Reading cookies
+        string userName = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserName");
+        string userType = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserType");
+
+        // Checking if the user is logged in
+        if (userName != "")
+        {
+            // User is logged in. Do not display the login link
+            await JsRuntime.InvokeVoidAsync("setDisplay", divLogin, "none");
+
+            if (userType.IndexOf("admin") == -1)
+            {
+                // User is not an admin. Do not display the admin
+                await JsRuntime.InvokeVoidAsync("setDisplay", divAdmin, "none");
+            }
+        }
+        else
+        {
+            // User is not logged in. Only display the home and login links
+            await JsRuntime.InvokeVoidAsync("setDisplay", divProducts, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divLeadDealSale, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divPotentialLeads, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divDeals, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divSales, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divClients, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divNotes, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divAdmin, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divLogout, "none");
+            await JsRuntime.InvokeVoidAsync("setDisplay", divLogin, "block");
+        }
+    }
+
+    public async void Logout()
+    {
+        // Deleting cookies and navigating to the login web page
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserID");
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserName");
+        await JsRuntime.InvokeAsync<object>("DeleteCookie.DeleteCookie", "cookieLoggedInUserType");
+    }
+}

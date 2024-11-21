@@ -1,0 +1,28 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>New Sale</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>Date:</label>
+				<input type="text" @bind="Sale.date" required/>
+			</div>
+			<div>
+				<label>Revenue:</label>
+				<input type="text" @bind="Sale.revenue" required />
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+			<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public sale Sale { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}

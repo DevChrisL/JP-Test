@@ -1,0 +1,49 @@
+﻿@using JP.Shared
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+@page "/products/other"
+
+<PageTitle>Other</PageTitle>
+
+<main>
+    <div class ="content">
+        <div class="header" style="left: -10%">
+            <h1>Other Products</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 85px; left: -10%">
+            <div>
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" asp-for="searchTerm" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class ="table table-sm table-bordered">
+                <tr>
+                    <th style="width: 10%;">Product ID</th>
+                    <th style="width: 20%;">Product Name</th>
+                    <th style="width: 20%;">Category</th>
+                    <th style="width: 15%;">Pricing</th>
+                    <th style="width: 15%;">Date Created</th>
+                    <th style="width: 40%;">Description</th>
+                </tr>
+                @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";                
+                    foreach (product prod in database.GetProducts(7, searchTerm))
+                    {
+                    <tr>
+                        <td>@prod.id</td>
+                        <td>@prod.name</td>
+                        <td>@prod.categoryName</td>
+                        <td>@prod.price.ToString("C")</td>
+                        <td>@prod.date.ToString("MM/dd/yyyy")</td>
+                        <td>@prod.description</td>
+                    </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>

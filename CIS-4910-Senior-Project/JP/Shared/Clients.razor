@@ -1,0 +1,150 @@
+@using JP.Shared
+@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+
+@page "/clients"
+
+<PageTitle>Clients</PageTitle>
+
+
+<main>
+    <div class ="content">
+        <div class="header" style="left: -10%">
+            <h1>Clients</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <div>
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" asp-for="searchTerm" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class ="table table-sm table-bordered">
+                <tr>
+                    <th style="width: 20%;">Client Name</th>
+                    <th style="width: 15%;">Phone Number</th>
+                    <th style="width: 25%;">Email</th>
+                    <th style="width: 25%;">Company Information</th>
+                    <th style="width: 25%;">Previous Purchases</th>
+                    <th style="width: 10%;">Edit</th>
+                    <th style="width: 10%;">Remove</th>
+                </tr>
+                 @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";
+                    foreach (client clt in database.GetClients(EmpID, searchTerm))
+                    {
+                    <tr>
+                        <td>@clt.firstName @clt.lastName</td>
+                        <td>@clt.phoneNumber.ToString("(###) ###-####")</td>
+                        <td>@clt.email</td>
+                            <td>Name: @clt.companyID<br />Revenue: @clt.companyrevenue.ToString("C0")<br />Employees: @clt.companyemployees.ToString("N0")<br />Category: @clt.categoryID</td>
+                        <td>
+                        @foreach (sale sale in database.GetSales(clt.companyID)) {
+                            @sale.productName<br />
+                        }
+                        </td>
+                        <td>
+                            <button class="edit-client" @onclick="@(() => ShowEditClientForm(clt.id, clt.firstName, clt.lastName, clt.email, clt.phoneNumber, clt.categoryID, clt.joinDate))">Edit</button>
+                        </td>
+                        <td>
+                            <button class="remove-client" @onclick="@(() => ConfirmRemoveClient(clt.id))">Remove</button>
+                        </td>
+                    </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>
+
+@if (showingConfirmRemoveClient)
+{
+
+    <ConfirmRemoveClient
+        OnNo="CancelRemoveClient"
+        OnYes="RemoveClient" />
+
+}
+
+@if (showingEditClientForm)
+{
+
+    <EditClientForm
+        Client="editClient"
+        OnCancel="CancelEditClient"
+        OnSave="SaveEditClient" />
+
+}
+
+@functions {
+
+    public int EmpID { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        EmpID = await GetEmpID();
+    }
+
+    // GET EMP ID
+    private async Task<int> GetEmpID()
+    {
+        string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+        int userID = Convert.ToInt32(strUserID);
+        userID = database.GetEmpID(userID);
+        return userID;
+    }
+
+    // REMOVE CLIENT ---------------------------------------------------------------
+
+    bool showingConfirmRemoveClient;
+    bool showingEditClientForm;
+    int clientID;
+    client editClient;
+
+
+    // Function to confirm client removal
+    private async Task ConfirmRemoveClient (int id)
+    {
+        // Confirm if they would like to remove client
+        clientID = id;
+        showingConfirmRemoveClient = true;
+    }
+
+    void CancelRemoveClient()
+    {
+        showingConfirmRemoveClient = false;
+    }
+
+    void RemoveClient()
+    {
+        database.RemoveClient(clientID);
+        showingConfirmRemoveClient = false;
+    }
+
+    // EDIT CLIENT ---------------------------------------------------------------
+
+    // Function to show edit client form
+    void ShowEditClientForm(int id, string fName, string lName, string email, decimal phone, string catID, DateTime joinDate)
+    {
+        editClient = new client(id, email, fName, lName, "", phone, 1, catID, joinDate);
+        showingEditClientForm = true;
+    }
+
+    // Function to cancel client edit
+    void CancelEditClient()
+    {
+        showingEditClientForm = false;
+    }
+
+    // Function to save editted client
+    private async Task SaveEditClient()
+    {
+        database.EditClient(editClient.id, editClient.email, editClient.firstName, editClient.lastName, editClient.phoneNumber, editClient.categoryID);
+        showingEditClientForm = false;
+    }
+
+}

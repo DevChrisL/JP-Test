@@ -1,0 +1,142 @@
+﻿@using JP.Shared
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+@page "/leads"
+
+<PageTitle>Potential Leads</PageTitle>
+
+
+<main>
+    <button class="new-lead mx-auto" style="margin:auto; position:absolute; top: 100%; right: -11%" @onclick="@(() => ShowAddLead())">New Lead</button>
+    <div class ="content">
+        <div class="header" style="left: -10%">
+            <h1>Potential Leads</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <div> 
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" asp-for="searchTerm" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class ="table table-sm table-bordered">
+                <tr>
+                    <th style="width: 20%;">Lead Name</th>
+                    <th style="width: 15%;">Phone Number</th>
+                    <th style="width: 26%;">Email</th>
+                    <th style="width: 25%;">Company Information</th>
+                    <th style="width: 20%;">Category</th>
+                    <th style="width: 20%;">Recommended Products</th>
+                    <th style="width: 15%;">Remove</th>
+                    <th style="width: 10%;">Add</th>
+                    
+                </tr>
+                @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";
+                    foreach (client lead in database.GetLeads(searchTerm))
+                    {
+                        <tr>
+                            <td>@lead.firstName @lead.lastName</td>
+                            <td>@lead.phoneNumber.ToString("(###) ###-####")</td>
+                            <td>@lead.email</td>
+                            <td>Name: @lead.companyID<br />Revenue: @lead.companyrevenue.ToString("C0")<br />Employees: @lead.companyemployees.ToString("N0")</td>
+                            <td>@lead.categoryID</td>
+                            <td>
+                                @foreach (RecommendedProduct prod in database2.GetRecommendeds(lead.categoryID, lead.companyemployees, lead.companyrevenue))
+                                {
+                                    @prod.productname <br />
+                                }
+                            </td>
+                            <td>
+                                <button class="remove-lead" @onclick="@(() => CheckRemoveLead(lead.id))">Remove</button>
+                            </td>
+                            <td>
+                                <button class="add-client" @onclick="@(() => ShowAddClientForm(lead.id))">Add</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>
+
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime;
+
+@if (showingConfirmRemoveLead)
+{
+    
+    <ConfirmRemoveLead 
+        OnNo="CancelRemoveLead"
+        OnYes="RemoveLead"/>
+
+}
+
+@if (showingConfirmAddClientForm)
+{
+    <ConfirmAddClientForm
+        OnNo="CancelAddClient"
+        OnYes="AddClient" />
+}
+
+@functions {
+
+    bool showingConfirmRemoveLead;
+    bool showingConfirmAddClientForm;
+    int leadID;
+    int addClientID;
+
+    // REMOVE LEAD ---------------------------------------------------------------
+
+    // Function to remove leads
+    private async Task CheckRemoveLead(int id)
+    {
+        // Check if they are authorized to remove lead (admin only)
+
+        // Confirm if they would like to remove lead
+        leadID = id;
+        showingConfirmRemoveLead = true;
+    }
+
+    void CancelRemoveLead()
+    {
+        showingConfirmRemoveLead = false;
+    }
+
+    void RemoveLead()
+    {
+        database.InactivateLead(leadID);
+        showingConfirmRemoveLead = false;
+    }
+
+    // ADD LEAD TO CLIENT LIST ---------------------------------------------------------------
+
+    private async Task ShowAddLead()
+    {
+        NavigationManager.NavigateTo("/add-lead");
+    }
+
+    private async Task ShowAddClientForm(int id)
+    {
+        addClientID = id;
+        showingConfirmAddClientForm = true;
+    }
+
+    void CancelAddClient()
+    {
+        showingConfirmAddClientForm = false;
+    }
+
+    private async Task AddClient()
+    {
+        string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+        int userID = Convert.ToInt32(strUserID);
+
+        database.addClient(addClientID, database.GetEmpIDFromAccID(userID));
+        showingConfirmAddClientForm = false;
+    }
+}

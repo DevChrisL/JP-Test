@@ -1,0 +1,22 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>Confirm Remove</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>Are you sure you would like to remove this client from your client list?</label>
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnNo">No</button>
+			<button class="btn btn-success ml-auto" @onclick="OnYes">Yes</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public EventCallback OnNo { get; set; }
+	[Parameter] public EventCallback OnYes { get; set; }
+}

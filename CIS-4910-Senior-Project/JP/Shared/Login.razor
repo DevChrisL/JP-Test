@@ -1,0 +1,44 @@
+﻿@inherits LayoutComponentBase
+
+@page "/login"
+
+<div class="col-12" style="margin-right: auto; margin-left: auto; max-width: 960px;">
+    <RadzenCard class="p-5 w-100">
+        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" class="mb-4">
+            Login
+        </RadzenText>
+        <RadzenTemplateForm Data=@("SimpleLogin") Action="/">
+            <RadzenLogin AllowRegister="false" AllowResetPassword="false" Login=@(args => OnLogin(args, "Simple login")) />
+        </RadzenTemplateForm>
+    </RadzenCard>
+</div>
+
+<br />
+<p>@msg</p>
+@inject IJSRuntime JsRuntime;
+@code {
+    string msg = "";
+
+    async protected void OnLogin(LoginArgs args, string name)
+    {
+        Tuple<bool, string> username = database.inputSanitization(args.Username);
+        Tuple<bool, string> password = database.inputSanitization(args.Password);
+        if (username.Item1 && password.Item1)
+        {
+            account acc = database.AttemptLogin(username.Item2, password.Item2);
+
+            if (acc != null)
+            {
+                // Write to browser cookie for the logged-in user
+                await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "cookieLoggedInUserID", acc.id, DateTime.Now.AddDays(1));
+                await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "cookieLoggedInUserName", acc.username, DateTime.Now.AddDays(1));
+                await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "cookieLoggedInUserType", acc.type, DateTime.Now.AddDays(1));
+                msg = "Welcome, " + acc.username + "!";
+            }
+            else
+            {
+                msg = "Invalid login credentials. Please contact a database administrator if you need a new account made.";
+            }
+        }
+    }
+}

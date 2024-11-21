@@ -1,0 +1,35 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>Edit Account</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>Username:</label>
+				<input type="text" @bind="Account.username" required/>
+			</div>
+			<div>
+				<label>Password:</label>
+				<input type="text" @bind="Account.password" required/>
+			</div>
+			<div>
+				<label>Account Type:</label>
+				<select @bind="Account.type" required>
+					<option value="sales">Sales</option>
+					<option value="admin">Admin</option>
+				</select>
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+			<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public account Account { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}

@@ -1,0 +1,36 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>Edit Deal</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>Date:</label>
+				<input type="text" @bind="Deal.date" required/>
+			</div>
+			<div>
+				<label>Client First Name:</label>
+				<input type="text" @bind="Deal.clientfName" required />
+			</div>
+			<div>
+				<label>Client Last Name:</label>
+				<input type="text" @bind="Deal.clientlName" required />
+			</div>
+			<div>
+				<label>Product Name:</label>
+				<input type="text" @bind="Deal.productName" required />
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+			<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public deal Deal { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}

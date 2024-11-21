@@ -1,0 +1,63 @@
+﻿@using JP.Shared
+@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+
+
+	<div class="dialog-container">
+		<div class="dialog">
+			<div class="dialog-title">
+				<h2>New Meeting</h2>
+			</div>
+			<form class="dialog-body">
+				<div>
+					<label>Date and time:</label>
+					<input type="text" @bind="meeting.date" required/>
+				</div>
+				@{
+								<div>
+									<label>Client:</label>
+									<select @bind="meeting.clientName" required>
+										<option value>Select a client</option>
+										
+										@foreach(client clt in database.GetClients(EmpID, ""))
+								{
+										<option value=>@clt.firstName @clt.lastName</option>
+								}
+										
+									</select>
+								</div>
+				}
+			</form>
+			<div class="dialog-buttons">
+				<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+				<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+			</div>
+		</div>
+	</div>
+
+@code {
+
+	[Parameter] public meeting meeting { get; set; }
+	[Parameter] public client clt { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}
+
+@functions{
+	public int EmpID { get; set; }
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		EmpID = await GetEmpID();
+	}
+
+	private async Task<int> GetEmpID()
+	{
+		string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+		int userID = Convert.ToInt32(strUserID);
+		userID = database.GetEmpID(userID);
+		return userID;
+	}
+}

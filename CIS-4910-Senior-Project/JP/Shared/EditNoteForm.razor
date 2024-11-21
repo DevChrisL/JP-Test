@@ -1,0 +1,42 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>Edit Note</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>Name & Date:</label>
+				<input type="text" @bind="Note.name" required/>
+			</div>
+			<div>
+				<label>Content:</label>
+				<br />
+				<textarea id="content-box" name="text" rows="12" cols="68" @bind="Note.contents" required></textarea>
+			</div>
+			<div>
+				<label>Category:</label>
+				<select @bind="Note.categoryID" required>
+					<option value=7>Select a category</option>
+					<option value=6>Restaurants & Quick-Serve Restaurants</option>
+					<option value=2>Retail</option>
+					<option value=3>Professional Services</option>
+					<option value=4>Personal Services</option>
+					<option value=1>Construction</option>
+					<option value=5>Business to Business</option>
+					<option value=7>Other</option>
+				</select>
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+			<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public note Note { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}

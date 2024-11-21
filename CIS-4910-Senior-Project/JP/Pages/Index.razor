@@ -1,0 +1,33 @@
+﻿@page "/index"
+
+<PageTitle>Index</PageTitle>
+
+<h1>Welcome</h1>
+<div>
+    @inject IJSRuntime JsRuntime;
+    <button class="btn" @onclick="WriteCookies">
+        Write Cookie
+    </button>
+    <button class="btn" @onclick="ReadCookies">
+        Read Cookie
+    </button>
+
+    <p>The cookie is @myCookieValue</p>
+    @code {
+        public string myCookieValue { get; set; } = "";
+        protected async Task WriteCookies()
+        {
+
+            await JsRuntime.InvokeAsync<object>("WriteCookie.WriteCookie", "cookieName", "cookieValue", DateTime.Now.AddMinutes(1));
+
+        }
+        protected async Task ReadCookies()
+        {
+
+            myCookieValue = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieName");
+
+        }
+
+    }
+</div>
+

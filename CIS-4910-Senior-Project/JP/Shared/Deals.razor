@@ -1,0 +1,219 @@
+﻿@using JP.Shared
+@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+
+@page "/deals"
+
+<PageTitle>Deals</PageTitle>
+
+<main>
+    <button class="new-deal mx-auto" style="margin:auto; position:absolute; top: 100%; right: -11%" @onclick="@(() => ShowCreateDealForm())">New Deal</button>
+    <div class ="content">
+        <div class="header" style="left: -10%">
+            <h1>Deals</h1>
+        </div>
+        <div class="table-responsive-sm tablealign" style="margin:auto; position:absolute; top: 235%; left: -10%">
+            <div>
+                <form class="form-inline">
+                    <div class="form-group col-md-6" style="float:right">
+                        <input type="search" id="query" name="q" placeholder="Search...">
+                    </div>
+                </form>
+            </div>
+            <table class ="table table-sm table-bordered">
+                <tr>
+                    <th style ="width: 10%;">Date</th>
+                    <th style="width: 20%;">Company</th>
+                    <th style="width: 15%;">Client</th>
+                    <th style="width: 20%;">Product</th>
+                    <th style="width: 15%;">Category</th>
+                    <th style="width: 10%;">Edit</th>
+                    <th style="width: 10%;">Delete</th>
+                    <th style="width: 10%;">Sale</th>
+                </tr>
+
+                @{
+                    string uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query;
+                    string searchTerm = uri.Contains("=") ? NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query.Split("=")[1] : "";
+                    foreach (deal deal in database.GetDeals(EmpID, searchTerm))
+                    {
+                        <tr>
+                            <td>@deal.date.ToString("MM/dd/yyyy")</td>
+                            <td>@deal.companyName</td>
+                            <td>@deal.clientfName @deal.clientlName</td>
+                            <td>@deal.productName</td>
+                            <td>@deal.categoryName</td>
+                            <td>
+                                <button class="edit-deal" @onclick="@(() => ShowEditDealForm(deal.employeefName, deal.employeelName, deal.date, deal.clientfName, deal.clientlName, deal.productName))">Edit</button>
+                            </td>
+                            <td>
+                                <button class="delete-deal" @onclick="@(() => ConfirmDeleteDeal(deal.employeefName, deal.employeelName, deal.date, deal.clientfName, deal.clientlName, deal.productName))">Delete</button>
+                            </td>
+                            <td>
+                                <button class="create-sale" @onclick="@(() => ShowCreateSaleForm(deal.employeefName, deal.employeelName, deal.date, deal.clientfName, deal.clientlName, deal.productName))">Sale</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</main>
+
+@if (showingCreateDealForm)
+{
+    
+    <CreateDealForm 
+        Deal="newDeal"
+        OnCancel="CancelCreateDeal"
+        OnSave="SaveCreateDeal"/>
+
+}
+
+@if (showingEditDealForm)
+{
+
+    <EditDealForm 
+        Deal="editDeal"
+        OnCancel="CancelEditDeal"
+        OnSave="SaveEditDeal" />
+
+}
+
+@if (showingConfirmDeleteDeal)
+{
+
+    <ConfirmDeleteDeal
+        OnNo="CancelDeleteDeal"
+        OnYes="DeleteDeal" />
+
+}
+
+@if (showingCreateSaleForm)
+{
+
+    <CreateSaleForm 
+        Sale="newSale"
+        OnCancel="CancelCreateSale"
+        OnSave="SaveCreateSale" />
+
+}
+
+@functions{
+
+    deal newDeal;
+    sale newSale;
+    deal editDeal;
+    deal deleteDeal;
+    DateTime oldDate;
+    int deleteDealID;
+    bool showingCreateDealForm;
+    bool showingEditDealForm;
+    bool showingConfirmDeleteDeal;
+    bool showingCreateSaleForm;
+
+    public int EmpID { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        EmpID = await GetEmpID();
+    }
+
+    // GET EMP ID
+    private async Task<int> GetEmpID()
+    {
+        string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+        int userID = Convert.ToInt32(strUserID);
+        userID = database.GetEmpID(userID);
+        return userID;
+    }
+    
+    // DELETE DEAL ---------------------------------------------------------------
+
+    void ConfirmDeleteDeal(string employeefName, string employeelName, DateTime date, string clientfName, string clientlName, string productName)
+    {
+        deleteDeal = new deal(date, "", clientfName, clientlName, employeefName, employeelName, productName, "", 1);
+        showingConfirmDeleteDeal = true;
+    }
+
+    // Function to delete deals
+    private async Task DeleteDeal()
+    {
+        database.DeleteDeal(EmpID, deleteDeal.date, deleteDeal.clientfName, deleteDeal.clientlName, deleteDeal.productName);
+        showingConfirmDeleteDeal = false;
+    }
+
+    void CancelDeleteDeal()
+    {
+        showingConfirmDeleteDeal = false;
+    }
+    
+    // CREATE DEAL ---------------------------------------------------------------
+
+    // Function to show create deal form
+    void ShowCreateDealForm()
+    {
+        newDeal = new deal();
+        showingCreateDealForm = true;
+    }
+
+    // Function to cancel deal creation
+    void CancelCreateDeal()
+    {
+        showingCreateDealForm = false;
+    }
+
+    // Function to save created deal
+    private async Task SaveCreateDeal()
+    {
+        database.CreateDeal(EmpID, newDeal.date, newDeal.clientfName, newDeal.clientlName, newDeal.productName);
+        showingCreateDealForm = false;
+    }
+
+    // EDIT DEAL ---------------------------------------------------------------
+
+    // Function to show edit deal form
+    void ShowEditDealForm(string employeefName, string employeelName, DateTime date, string fname, string lname, string prodName)
+    {
+        oldDate = date;
+        editDeal = new deal(date, "", fname, lname, employeefName, employeelName, prodName, "", 1);
+        showingEditDealForm = true;
+    }
+
+    // Function to cancel deal edit
+    void CancelEditDeal()
+    {
+        showingEditDealForm = false;
+    }
+
+    // Function to save editted deal
+    private async Task SaveEditDeal()
+    {
+        database.EditDeal(EmpID, editDeal.date, oldDate, editDeal.clientfName, editDeal.clientlName, editDeal.productName);
+        showingEditDealForm = false;
+    }
+
+    // CREATE SALE ---------------------------------------------------------------
+
+    // Function to show create sale form
+    void ShowCreateSaleForm(string employeefName, string employeelName, DateTime date, string clientfName, string clientlName, string productName)
+    {
+        newSale = new sale(date, "", clientfName, clientlName, employeefName, employeelName, productName, "", 1, 1, 1);
+        showingCreateSaleForm = true;
+    }
+
+    // Function to cancel sale creation
+    void CancelCreateSale()
+    {
+        showingCreateSaleForm = false;
+    }
+
+    // Function to save created sale
+    private async Task SaveCreateSale()
+    {
+        database.CreateSale(EmpID, newSale.date, newSale.clientfName, newSale.clientlName, newSale.productName, newSale.revenue);
+        showingCreateSaleForm = false;
+    }
+}

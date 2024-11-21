@@ -1,0 +1,118 @@
+﻿@inherits LayoutComponentBase
+
+@page "/"
+
+<PageTitle>Welcome</PageTitle>
+
+<main>
+    <div class ="content">
+        <div class="header">
+            <div @ref="divWelcome"></div>
+            <br />
+        </div>
+   
+        <div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <div class="card w-30" style="float:left; position:relative; margin-left:5%" hidden="@HideCard">
+                <div class="card-body">
+                    <h2 class="card-title text-center">My Meetings</h2>
+                    <dl @ref="divMeetings">
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card w-25" style="float:left; position:relative; margin-left:5%" hidden="@HideCard">
+                <div class="card-body">
+                    <h2 class="card-title text-center">My Tasks</h2>
+                    <dl @ref="divTasks">
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card w-35" style="float:left; position:relative; margin-left:5%" hidden="@HideCard">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Sales Feed</h2>
+                    <dl @ref="divSalesFeed">
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime;
+@code {
+    private ElementReference divWelcome;
+    private ElementReference divMeetings;
+    private ElementReference divTasks;
+    private ElementReference divSalesFeed;
+
+    private string welcome = "";
+    private string meetings = "<hr>";
+    private string tasks = "<hr>";
+    private string salesFeed = "<hr>";
+
+    private bool HideCard { get; set; } = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        string username = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserName");
+        string strUserID = await JsRuntime.InvokeAsync<string>("ReadCookie.ReadCookie", "cookieLoggedInUserID");
+
+        if (username != "" && strUserID != "")
+        {
+            if (HideCard)
+            {
+                // change the visibility of the control to hidden
+                HideCard = false;
+                // re-render the component
+                StateHasChanged();
+            }
+
+
+            int userID = Convert.ToInt32(strUserID);
+
+            int meetingCounter = 0;
+            int taskCounter = 0;
+            welcome = "<h1>Welcome back, " + username + "!</h1>";
+
+            foreach (meeting meeting in database.GetMeetings(userID))
+            {
+                meetings += "<dt>" + meeting.time + " " + meeting.company + " " + meeting.clientName + "</dt><br>";
+                meetingCounter++;
+            }
+            foreach (task task in database.GetTasks(userID))
+            {
+                tasks += "<dt>" + task.name + "</dt><br>";
+                taskCounter++;
+            }
+            foreach (sale sale in database.GetSales())
+            {
+                salesFeed += "<dt>Date: " + sale.date.ToString("MM/dd/yyyy") + "<br>Employee: " + sale.employeefName + " " + sale.employeelName + "<br>Client: " + sale.clientfName + " " + sale.clientlName + "<br>Company: " + sale.companyName + "<br>Product: " + sale.productName + "</dt><br>";
+            }
+
+            if (meetingCounter == 0)
+            {
+                meetings += "<i>No meetings found for user \"" + username + "\".</i>";
+            }
+            if (taskCounter == 0)
+            {
+                tasks += "<i>No tasks found for user \"" + username + "\".</i>";
+            }
+        }
+        else
+        {
+            welcome = "<h1>Welcome, guest.</h1><h4><a href='/login'>Login</a> if you are a sales agent at JPMC. If not, then <a href='/add-lead'>click here</a> if you are interested in JP Morgan services.</h4>";
+        }
+
+        await JsRuntime.InvokeVoidAsync("setHTML", divWelcome, welcome);
+        await JsRuntime.InvokeVoidAsync("setHTML", divMeetings, meetings);
+        await JsRuntime.InvokeVoidAsync("setHTML", divTasks, tasks);
+        await JsRuntime.InvokeVoidAsync("setHTML", divSalesFeed, salesFeed);
+    }
+}

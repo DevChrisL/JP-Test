@@ -1,0 +1,49 @@
+﻿<div class="dialog-container">
+	<div class="dialog">
+		<div class="dialog-title">
+			<h2>Edit Client</h2>
+		</div>
+		<form class="dialog-body">
+			<div>
+				<label>First Name:</label>
+				<input type="text" @bind="Client.firstName" required/>
+			</div>
+			<div>
+				<label>Last Name:</label>
+				<input type="text" @bind="Client.lastName" required />
+			</div>
+			<div>
+				<label>Email:</label>
+				<input type="text" @bind="Client.email" required />
+			</div>
+			<div>
+				<label>Phone Number:</label>
+				<input type="text" @bind="Client.phoneNumber" required />
+			</div>
+			<div>
+				<label>Category:</label>
+				<select @bind="Client.categoryID" required>
+					<option>Select a category</option>
+					<option>Restaurants & Quick-Serve Restaurants</option>
+					<option>Retail</option>
+					<option>Professional Services</option>
+					<option>Personal Services</option>
+					<option>Construction</option>
+					<option>Business to Business</option>
+					<option>Other</option>
+				</select>
+			</div>
+		</form>
+		<div class="dialog-buttons">
+			<button class="btn btn-secondary mr-auto" @onclick="OnCancel">Cancel</button>
+			<button class="btn btn-success ml-auto" @onclick="OnSave">Save</button>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter] public client Client { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public EventCallback OnSave { get; set; }
+}
